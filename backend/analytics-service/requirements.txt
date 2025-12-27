@@ -1,0 +1,5 @@
+fastapi==0.127.0
+uvicorn==0.40.0
+pandas==2.3.3
+statsmodels==0.14.6
+pydantic==2.12.5
