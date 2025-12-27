@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: powertrack_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_postgres_password
+      POSTGRES_DB: powertrack
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - powertrack-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  analytics:
+    build:
+      context: ./backend/analytics-service
+      dockerfile: Dockerfile
+    container_name: powertrack_analytics
+    ports:
+      - "8000:8000"
+    networks:
+      - powertrack-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: powertrack_backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: your_postgres_password
+      DB_NAME: powertrack
+      JWT_SECRET: supersecretkey
+      ANALYTICS_SERVICE_URL: http://analytics:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      analytics:
+        condition: service_started
+    networks:
+      - powertrack-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: powertrack_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - powertrack-network
+
+volumes:
+  postgres_data:
+
+networks:
+  powertrack-network:
+    driver: bridge

@@ -1,0 +1,57 @@
+Terminal 1: backend
+
+cd "C:\Users\Umaid Khakwani\Documents\GitHub\PowerTrack\backend"
+npm run start:dev
+
+
+Terminal 2: Analytics Service (Python)
+
+command prompt:
+venv\Scripts\activate
+
+powershell
+cd "C:\Users\Umaid Khakwani\Documents\GitHub\PowerTrack\backend\analytics-service"
+.\venv\Scripts\Activate.ps1
+uvicorn main:app --reload
+
+
+Terminal 3: Frontend (React)
+
+powershell
+cd "C:\Users\Umaid Khakwani\Documents\GitHub\PowerTrack\frontend"
+npm run dev
+Once running:
+
+Terminal 4: Importing Seed Dataset (the path is already given in the seed-dataset.ts file)
+
+npm run seed
+
+Frontend: http://localhost:5173
+Backend API: http://localhost:3000
+Analytics API: http://localhost:8000
+
+-------------------------------------------------------------------------------------------------
+
+PostgresSQL:
+
+script to get all the tables and their row counts:
+
+SELECT 
+    schemaname, 
+    relname AS table_name, 
+    n_live_tup AS row_count 
+FROM pg_stat_user_tables 
+ORDER BY n_live_tup DESC;
+
+
+-------------------------------------------------------------------------------------------------4
+
+
+The "Detect Anomalies" feature works on your filters (it only looks at the data from Jan 1st to Jan 30th, 2009), the current logic is designed to check if the latest day in that range is a spike.
+
+Here is exactly how it works:
+
+Filters: It takes your selected range (Jan 1 - Jan 30).
+Focus: It looks at the very last value (Jan 30th).
+Comparison: It compares Jan 30th against the previous 5 days (Jan 25-29).
+Result: If Jan 30th is normal compared to Jan 25-29, it says "No anomalies," even if there was a huge spike on Jan 15th.
